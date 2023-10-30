@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>攀登智慧之山</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        #game-container {
+            width: 700px;
+            height: 800px;
+            margin: 20px auto;
+            position: relative;
+            background-image: url('mountain2.png');
+            background-size: cover;
+        }
+
+        #matchstickman {
+            width: 50px;
+            height: 100px;
+            position: absolute;
+            bottom: 0;
+            left: 70px;
+            background-image: url('matchstickman2.png');
+            background-size: cover;
+        }
+
+        .horizontal-line {
+            width: 100%;
+            height: 2px;
+            background-color: red;
+            position: absolute;
+            display: block;
+        }
+
+        label, input, button {
+            margin: 5px;
+        }
+
+        label {
+            display: block;
+        }
+
+        input, button {
+            padding: 5px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        /* 自定义问题弹出框样式 */
+        .question-box {
+            background-color: #fff;
+            border: 2px solid #007BFF;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 40px; /* 控制字号大小 */
+        }
+
+        #climb-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>爬山游戏</h1>
+    <div id="game-container">
+        <div id="matchstickman"></div>
+        <div class="horizontal-line" style="bottom: calc(600px / 6);"></div>
+        <div class="horizontal-line" style="bottom: calc(2 * 600px / 6);"></div>
+        <div class="horizontal-line" style="bottom: calc(3 * 600px / 6);"></div>
+        <div class="horizontal-line" style="bottom: calc(4 * 600px / 6);"></div>
+        <div class="horizontal-line" style="bottom: calc(5 * 600px / 6);"></div>
+        <div class="horizontal-line" style="bottom: calc(6 * 600px / 6);"></div>
+    </div>
+
+    <div id="climb-container">
+        <label for="climb-steps">上山步数：</label>
+        <input type="number" id="climb-steps" placeholder="输入上山步数">
+        <button id="climb-button">上山</button>
+    </div>
+
+    <div id="climb-container">
+        <label for="descend-steps">下山步数：</label>
+        <input type="number" id="descend-steps" placeholder="输入下山步数">
+        <button id="descend-button">下山</button>
+    </div>
+
+    <script>
+        const matchstickman = document.getElementById('matchstickman');
+        const horizontalLines = document.querySelectorAll('.horizontal-line');
+        let positionX = 70;
+        let positionY = 0; // 初始位置在山的左下角
+        let climbSpeed = 2; // 调整爬升速度
+        let steps = 0;
+        let totalSteps = 0;
+        let currentInterval = 1;
+        let lastIntervalY = 0;
+        const stickmanHeight = 100; // 小人的高度
+
+        // 问题数组
+        const questions = [
+            "若你早上8点出发登山，下午6点登上山顶，在山顶睡了一觉。第二天早上8点开始下山，下午6点到山底。请问，这两天你是否会在同一时间经过同一个地点？",
+            "若登山需要2500步，登山路有魔法，你迈的步子会不断变大，按1步、3步、5步，每次加两步的规律增加。请问，多少步后，你能到达山顶？",
+            "若登山进入循环路段，先向上走100、99步，然后回退98、97步；再向上走96、95步，再回退94、93步。以此类推，一直到最后向上走4、3步，回退2、1步。请问，总共往上走了多少步？",
+            "若步数从1开始，每次翻倍，一直到512步。请问，总共往上走了多少步？",
+            "无尽的山路，直上云端。现在有两种登山方案，①是每天登山757575步，连续7474天；②是每天登山747474步，连续7575天。请问，哪种方案登山的高度更高？",
+            "最后的封锁是两幅图，只要算出作图阴影面积之差，或算出右图阴影面积，即可通往山顶。"
+        ];
+
+        document.getElementById('climb-button').addEventListener('click', () => {
+            const climbStepsInput = document.getElementById('climb-steps').value;
+            totalSteps = parseInt(climbStepsInput);
+
+            climbMountain();
+        });
+
+        document.getElementById('descend-button').addEventListener('click', () => {
+            const descendStepsInput = document.getElementById('descend-steps').value;
+            totalSteps = parseInt(descendStepsInput);
+
+            descendMountain();
+        });
+
+        function hideHorizontalLine(index) {
+            horizontalLines[index].style.display = 'none';
+        }
+
+        function climbMountain() {
+            if (totalSteps > 0) {
+                if (positionX < 750) {
+                    if (positionY < 400){
+                    positionX += climbSpeed*0.75;
+                    }else{
+                        positionX += climbSpeed*0.5;
+                    }
+                    positionY += climbSpeed;
+                    matchstickman.style.left = positionX + 'px';
+                    matchstickman.style.bottom = positionY + 'px';
+
+                    // 检查是否到达下一个间隔
+                    if (positionY + stickmanHeight >= (currentInterval * 600 / 6) && lastIntervalY < (currentInterval * 600 / 6)) {
+                        if (currentInterval <= 6) {
+                            alert("问题 " + currentInterval + ": " + questions[currentInterval - 1]);
+                            currentInterval++;
+                            hideHorizontalLine(currentInterval - 2);
+                        }
+                    }
+
+                    lastIntervalY = (currentInterval - 1) * 600 / 6;
+
+                    totalSteps--;
+                    requestAnimationFrame(climbMountain);
+                } else {
+                    alert('恭喜，您已经到达山顶！');
+                }
+            }
+        }
+
+        function descendMountain() {
+            if (totalSteps > 0) {
+                if (positionX > 0) {
+                    positionX -= climbSpeed;
+                    positionY -= climbSpeed;
+                    matchstickman.style.left = positionX + 'px';
+                    matchstickman.style.bottom = positionY + 'px';
+
+                    // 检查是否到达下一个间隔
+                    if (positionY + stickmanHeight <= (currentInterval * 600 / 6) && lastIntervalY > (currentInterval * 600 / 6)) {
+                        if (currentInterval <= 6) {
+                            alert("问题 " + currentInterval + ": " + questions[currentInterval - 1]);
+                            currentInterval++;
+                            hideHorizontalLine(currentInterval - 2);
+                        }
+                    }
+
+                    lastIntervalY = (currentInterval - 1) * 600 / 6;
+
+                    totalSteps--;
+                    requestAnimationFrame(descendMountain);
+                } else {
+                    alert('您已经退回到山脚！');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
